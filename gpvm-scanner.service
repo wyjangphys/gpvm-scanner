@@ -1,0 +1,16 @@
+[Unit]
+Description=FNAL GPVM load scanner
+Wants=gpvm-scanner.timer
+[Service]
+Type=oneshot
+Environment=USERNAME=%u
+Environment=REALM=FNAL.GOV
+Environment=HOST_PREFIX=dunegpvm
+Environment=DOMAIN=fnal.gov
+Environment=SSH_CONNECT_TIMEOUT=6
+ExecStart=%h/.local/bin/gpvm-scanner.sh
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.user.gpvm-scanner.scan</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/wyjang/.local/bin/gpvm-scanner.sh</string>
+  </array>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StartInterval</key>
+  <integer>300</integer>
+
+  <key>StandardOutPath</key>
+  <string>/Users/wyjang/Library/Logs/gpvm-scanner.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/wyjang/Library/Logs/gpvm-scanner.err.log</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>HOME</key>
+    <string>/Users/wyjang</string>
+  </dict>
+</dict>
+</plist>

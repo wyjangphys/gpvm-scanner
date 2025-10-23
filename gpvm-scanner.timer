@@ -1,0 +1,12 @@
+[Unit]
+Description=Run dunegpvm-scan periodically
+
+[Timer]
+# 매 5분마다 실행하도록 예시 (원하시면 변경 가능)
+OnBootSec=1min
+OnUnitActiveSec=5min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+
