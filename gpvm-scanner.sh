@@ -153,8 +153,10 @@ fetch_one() {
   loads=""
   # Try /proc/loadavg
   out=$(ssh ${SSH_OPTS} "${user}@${name}${idx_formatted}.${domain}" 'cat /proc/loadavg' 2>/dev/null ) || true
+  printf '%s' "$out"
   # extract first three floats
   #loads=$(echo "$out" | grep -oE '[0-9]+(\.[0-9]+)?' | head -n3 | tr '\n' ' ' | sed 's\ $\\') # it works only in Linux
+  printf '%s' "$loads"
   loads=$(echo "$out" | grep -oE '[0-9]+(\.[0-9]+)?' | head -n3 | xargs)
   [ -n "$loads" ] && echo "${name}${idx_formatted},$(echo $loads | awk '{print $1","$2","$3}'),/proc/loadavg" >> "$TMP_CSV"
 }
@@ -248,6 +250,11 @@ main() {
       i=$((i+1))
     done
   done < "$CFG"
+
+  # wait for remaining jobs
+  for pid in $pids; do
+    wait "$pid" || true
+  done
 
   log "Fetched average load information from all servers."
 
