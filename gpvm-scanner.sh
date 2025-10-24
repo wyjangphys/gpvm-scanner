@@ -103,35 +103,58 @@ log() {
 }
 
 is_excluded() {
-  idx="$1"
-  ex="$2"
-  if [ -z "$ex" ]; then
-    printf 'no'
-    return 0
-  fi
+  idx=$1
+  ex=$2
 
-  # convert idx to integer safely (awk handles leading zeros)
-  idxint=$(printf '%s\n' "$idx" | awk '{print int($0)}')
+  # exclude 해야 하는 항목이 하나도 없으면 바로 종료
+  [ -z "$ex" ] && { printf 'no'; return 0; }
 
-  # iterate comma-separated parts
-  # we can't rely on shell arrays, use awk to parse quickly
-  printf '%s' "$ex" | awk -v idx="$idxint" '
-    BEGIN{ FS="," }
-    {
-      for(i=1;i<=NF;i++){
-        gsub(/^ +| +$/,"",$i)
-        p=$i
-        if(p=="") next
-        if(index(p,"-")>0) {
-          split(p, r, "-")
-          a = int(r[1]); b = int(r[2])
-          if(idx >= a && idx <= b){ print "yes"; exit }
-        } else {
-          if(idx == int(p)){ print "yes"; exit }
-        }
-      }
-      print "no"
-    }'
+  # safe integer conversion (leading zeros ok)
+  case $idx in
+    ''|*[!0-9]*) idxint=0 ;;   # 빈 문자열이거나 숫자가 아니면 0으로 간주
+    *) idxint=$((10#$idx)) ;;  # 10# 은 idx 를 십진수로 해석
+  esac
+
+  # iterate through comma-separated fields
+  while :; do
+    case $ex in
+      *','*)
+        part=${ex%%,*}
+        ex=${ex#*,}
+        ;;
+      *)
+        part=$ex
+        ex=
+        ;;
+    esac
+
+    # trim spaces manually
+    while [ "${part# }" != "$part" ]; do part=${part# }; done
+    while [ "${part% }" != "$part" ]; do part=${part% }; done
+
+    [ -z "$part" ] && [ -z "$ex" ] && break
+    [ -z "$part" ] && continue
+
+    case $part in
+      *-*)
+        a=${part%-*}
+        b=${part#*-}
+        a=$((10#$a)); b=$((10#$b))
+        if [ "$idxint" -ge "$a" ] && [ "$idxint" -le "$b" ]; then
+          printf 'yes'
+          return 0
+        fi
+        ;;
+      *)
+        p=$((10#$part))
+        [ "$idxint" -eq "$p" ] && { printf 'yes'; return 0; }
+        ;;
+    esac
+
+    [ -z "$ex" ] && break
+  done
+
+  printf 'no'
 }
 
 has_kerberos_ticket() {
