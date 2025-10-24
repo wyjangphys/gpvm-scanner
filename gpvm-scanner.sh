@@ -122,16 +122,16 @@ is_excluded() {
         gsub(/^ +| +$/,"",$i)
         p=$i
         if(p=="") next
-        if(index(p,"-")>0){
+        if(index(p,"-")>0) {
           split(p, r, "-")
           a = int(r[1]); b = int(r[2])
           if(idx >= a && idx <= b){ print "yes"; exit }
         } else {
           if(idx == int(p)){ print "yes"; exit }
         }
-    }
-  print "no"
-  }'
+      }
+      print "no"
+    }'
 }
 
 has_kerberos_ticket() {
@@ -157,10 +157,6 @@ fetch_one() {
   #loads=$(echo "$out" | grep -oE '[0-9]+(\.[0-9]+)?' | head -n3 | tr '\n' ' ' | sed 's\ $\\') # it works only in Linux
   loads=$(echo "$out" | grep -oE '[0-9]+(\.[0-9]+)?' | head -n3 | xargs)
   [ -n "$loads" ] && echo "${name}${idx_formatted},$(echo $loads | awk '{print $1","$2","$3}'),/proc/loadavg" >> "$TMP_CSV"
-  echo $loads
-
-  # fallback -> unreachable
-  printf "%s,, ,UNREACHABLE\n" "${user}@${name}${idx_formatted}.${domain}" >> "test.log"
 }
 
 main() {
@@ -172,6 +168,8 @@ main() {
   SSH_OPTS="-o ConnectTimeout=${SSH_CONNECT_TIMEOUT} -o BatchMode=yes -o StrictHostkeyChecking=no"
   OUT_DIR="${HOME}/.local/etc"
   OS_TYPE=$(detect_os)
+  MAX_JOBS=20
+  job_count=0
   check_cfg
 
   # Temporary files
@@ -231,20 +229,25 @@ main() {
 
       printf "ssh $SSH_OPTS ${name}${idx_formatted}.${domain} -- $?\n"
       fetch_one &
-      pid=$!
-      pids="$pids $pid"
+      pids="$pids $!"
+      job_count=$((job_count + 1))
+      if [ "$job_count" -ge "$MAX_JOBS" ] ; then
+        # wait for all jobs
+        for pid in $pids; do
+          wait "$pid" && pids=$(printf '%s' "$pids" | sed "s/\b$pid\b//g") || true
+          job_count=$((job_count - 1))
+        done
+        # reset
+        pids=""
+        job_count=0
+      fi
 
       if [ "$i" -ge "$end" ] ; then
         break
       fi
       i=$((i+1))
     done
-
   done < "$CFG"
-  # wait until next loop
-  for pid in $pids; do
-    wait "$pid" || true
-  done
 
   log "Fetched average load information from all servers."
 
