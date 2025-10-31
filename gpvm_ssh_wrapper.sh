@@ -1,4 +1,6 @@
+#!/bin/sh
 # POSIX-compliant GPVM SSH wrapper
+
 _gpvm_ssh_wrapper() {
   config_file="${HOME}/.local/etc/gpvm-scanner-config"
   default_pad="${GPVM_PAD:-2}"
@@ -67,10 +69,25 @@ _gpvm_ssh_wrapper() {
     return $?
   fi
 
+  # if hostpart contains a dot, assume it is a full address and do nothing
+  case "$hostpart" in
+    *.*)
+      command ssh "$@"
+      ;;
+  esac
+
+  # if hostpart ends with digits, treat as explicit indexed hostname (e.g., dunegpvm03)
+  case "$hostpart" in
+    *[0-9])
+      command ssh "$@"
+      ;;
+  esac
+
   # defaults
   [ -z "$domain" ] && domain=".fnal.gov"
   pad="${GPVM_PAD:-$default_pad}"
 
+  # sel_file is determined by name column of the config file.
   sel_file="${HOME}/.local/etc/${name}"
   sel=""
 
