@@ -27,6 +27,7 @@ EOF
 }
 
 generate_config_file() {
+  mkdir -pv $HOME/.local/etc
 cat <<EOF > "$HOME/.local/etc/gpvm-scanner-config"
 # GPVM Scanner Configuration File
 # Each line represents a GPVM group to scan
@@ -39,6 +40,7 @@ EOF
 copy_files() {
   mkdir -pv "$HOME/.local/bin"
   mkdir -pv "$HOME/.local/etc"
+  mkdir -pv "$HOME/.config/systemd/user"
 
   cp -v "gpvm-scanner.sh" "$HOME/.local/bin/gpvm-scanner.sh"
   cp -v "gpvm_ssh_wrapper.sh" "$HOME/.local/bin/gpvm_ssh_wrapper.sh"
