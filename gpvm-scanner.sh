@@ -300,6 +300,7 @@ main() {
     mkdir -p "${HOME}/.local/etc"
     outfile="${HOME}/.local/etc/${name}"
     min_index="$(get_min_index ${name} ${TMP_CSV})"
+    echo $min_index > ${outfile}
     log "Selected index ${min_index} written to ${outfile}"
   done < "$CFG"
 
